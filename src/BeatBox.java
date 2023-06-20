@@ -17,6 +17,8 @@ public class BeatBox {
     Sequence sequence;
     Track track;
     JFrame theFrame;
+    JFileChooser fileChooser = new JFileChooser();
+
 
     /*
     Ниже перечеслияем названия инструментов в виде строк.
@@ -213,55 +215,68 @@ public class BeatBox {
 
     public class MySendListener implements ActionListener {
         public void actionPerformed(ActionEvent a) {
-            // создаем булев массив для хранения состояния каждого флажка
-            boolean[] checkboxState = new boolean[256];
+            fileChooser.setCurrentDirectory(new File("src/save"));//- чтобы по умолчанию открывался пакет "src.save" в диалоговом окне.
+            int result = fileChooser.showSaveDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                // сохраняем данные в выбранный файл
 
-            for (int i = 0; i < 256; i++) {
-                JCheckBox check = checkboxList.get(i);
-                if (check.isSelected()) {
-                    checkboxState[i] = true;
+                // создаем булев массив для хранения состояния каждого флажка
+                boolean[] checkboxState = new boolean[256];
+
+                for (int i = 0; i < 256; i++) {
+                    JCheckBox check = checkboxList.get(i);
+                    if (check.isSelected()) {
+                        checkboxState[i] = true;
+                    }
                 }
-            }
 
-            try { //сораняем массив флажков в файл "Checkbox.ser"
-                FileOutputStream fileStream = new FileOutputStream(
-                        new File("Checkbox.ser"));
-                ObjectOutputStream os = new ObjectOutputStream(fileStream);
-                os.writeObject(checkboxState);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+                try { //сораняем массив флажков в файл "Checkbox.ser"
+                    FileOutputStream fileStream = new FileOutputStream(
+                            file);
+                    ObjectOutputStream os = new ObjectOutputStream(fileStream);
+                    os.writeObject(checkboxState);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
 
+            }
         }
     }
 
     public class MyReadInListener implements ActionListener {  // new - restore
         public void actionPerformed(ActionEvent a) {
+            fileChooser.setCurrentDirectory(new File("src/save"));
+            int result = fileChooser.showOpenDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                // сохраняем данные в выбранный файл
 
 
-            boolean[] checkboxState = null;
-            try {
-                FileInputStream fileIn = new FileInputStream(
-                        new File("Checkbox.ser"));
-                ObjectInputStream is = new ObjectInputStream(fileIn);
-                checkboxState = (boolean[]) is.readObject();
+                boolean[] checkboxState = null;
+                try {
+                    FileInputStream fileIn = new FileInputStream(
+                            file);
+                    ObjectInputStream is = new ObjectInputStream(fileIn);
+                    checkboxState = (boolean[]) is.readObject();
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
-            // Теперь восстанавливаем состояние каждого флажка в ArrayList, содержащий объекты JCheckBox
-            for (int i = 0; i < 256; i++) {
-                JCheckBox check = checkboxList.get(i);
-                if (checkboxState[i]) {
-                    check.setSelected(true);
-                } else {
-                    check.setSelected(false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-            }
 
-            sequencer.stop();
-            buildTrackAndStart();
+                // Теперь восстанавливаем состояние каждого флажка в ArrayList, содержащий объекты JCheckBox
+                for (int i = 0; i < 256; i++) {
+                    JCheckBox check = checkboxList.get(i);
+                    if (checkboxState[i]) {
+                        check.setSelected(true);
+                    } else {
+                        check.setSelected(false);
+                    }
+                }
+
+                sequencer.stop();
+                buildTrackAndStart();
+            }
         }
     }
 
